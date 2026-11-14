@@ -25,4 +25,22 @@ const registerValidator = () => {
     ]
 };
 
-export { registerValidator };
+const loginValidator = () => {
+    return [
+        
+        body("email")
+            .optional()
+            .trim()
+            .isEmail().withMessage("Email is not valid"),
+        body("username")
+            .optional()
+            .trim()
+            .isLength({ min: 3 }).withMessage("Username must be at least 3 characters"),
+        body("password")
+            .trim()
+            .bail() 
+            .notEmpty().withMessage("Password is required")
+    ];
+};
+
+export { registerValidator, loginValidator };
