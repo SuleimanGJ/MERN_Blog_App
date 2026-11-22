@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
+import { accessTokenCookieOptions, refreshTokenCookieOptions } from "../utils/cookieOptions.js";
 
 const registerUser = asyncHandler(async (req, res, next) => {
     const { username, email, password } = req.body;
@@ -58,7 +59,7 @@ const loginUser = asyncHandler(async (req, res, next) => {
             409,
             "Invalid credentials"
         );
-    }
+    };
 
     const isMatchedPassword = await existingUser.isPasswordCorrect(password);
 
@@ -69,11 +70,34 @@ const loginUser = asyncHandler(async (req, res, next) => {
         )
     };
 
+    // generate tokens
+    const accessToken = await existingUser.generateAccessToken();
+    const refreshToken = await existingUser.generateRefreshToken();
+
+    // store refresh token
+    await existingUser.refreshToken = refreshToken;
+    await existingUser.save({ validateBeforeSave: false });
+
+
     const loggedInUser = existingUser.toObject();
 
-    // delete loggedInUser.password;
+    delete loggedInUser.password;
+    delete loggedInUser.refreshToken;
 
-    return res.status(200).json(
+
+    return res
+    .status(200)
+    .cookie(
+        "accessToken",
+        accessToken,
+        accessTokenCookieOptions
+    )
+    .cookie(
+        "refreshToken",
+        refreshToken,
+        refreshTokenCookieOptions
+    )
+    .json(
         new ApiResponse(
             200,
             loggedInUser,
