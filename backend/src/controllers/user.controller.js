@@ -75,7 +75,7 @@ const loginUser = asyncHandler(async (req, res, next) => {
     const refreshToken = await existingUser.generateRefreshToken();
 
     // store refresh token
-    await existingUser.refreshToken = refreshToken;
+    existingUser.refreshToken = refreshToken;
     await existingUser.save({ validateBeforeSave: false });
 
 
